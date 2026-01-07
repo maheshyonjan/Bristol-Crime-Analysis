@@ -1,0 +1,14 @@
+# Ignore Virtual Environment
+venv/
+env/
+.venv/
+
+# Ignore Python Cache
+__pycache__/
+*.pyc
+
+# Ignore Mac System files (if you use Mac)
+.DS_Store
+
+# OPTIONAL: If your raw data is larger than 100MB, un-comment the line below:
+# raw_data/
