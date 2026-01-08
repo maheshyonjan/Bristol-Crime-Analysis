@@ -90,43 +90,29 @@ start_date, end_date = st.sidebar.slider(
 time_mask = (incidents_df['Month'].dt.date >= start_date) & (incidents_df['Month'].dt.date <= end_date)
 base_filtered_incidents = incidents_df.loc[time_mask]
 
-
-# --- FILTER 2: CRIME TYPE ---
-st.sidebar.subheader("Crime Categories")
-
-all_crimes = base_filtered_incidents['Crime type'].unique().tolist()
-
-# Priority crimes to show by default
-target_defaults = [
-    "Vehicle crime",
-    "Criminal damage and arson",
-    "Burglary",
-    "Anti-social behaviour",
-    "Other crime",
-    "Violence and sexual offences"
-]
-
-# Safety Check: Ensure we only default-select crimes that actually exist in the current data
-valid_defaults = [c for c in target_defaults if c in all_crimes]
-
-selected_crimes = st.sidebar.multiselect(
-    "Select Crime Types:", 
-    all_crimes, 
-    default=valid_defaults 
-)
-
-filtered_incidents = base_filtered_incidents[base_filtered_incidents['Crime type'].isin(selected_crimes)]
-
-# --- FILTER 3: MAP METRIC (UPDATED) ---
+# --- FILTER 2: MAP METRIC ---
 st.sidebar.subheader("Map Layer")
 map_metric = st.sidebar.radio(
     "Colour Map By (Socioeconomic Factor):",
-    # Added 'None (Boundaries Only)' option here
     options=['Crime_Rate', 'IMDScore', 'Income', 'Employment', 'None (Boundaries Only)'],
     format_func=lambda x: "Crimes per 1,000" if x == 'Crime_Rate' 
                           else ("Boundaries Only (Transparent)" if x == 'None (Boundaries Only)' 
                           else x + " Deprivation")
 )
+
+# --- FILTER 3: CRIME TYPE (MOVED DOWN & DEFAULT ALL) ---
+st.sidebar.subheader("Crime Categories")
+
+all_crimes = base_filtered_incidents['Crime type'].unique().tolist()
+
+selected_crimes = st.sidebar.multiselect(
+    "Select Crime Types:", 
+    all_crimes, 
+    default=all_crimes # Selects ALL by default
+)
+
+filtered_incidents = base_filtered_incidents[base_filtered_incidents['Crime type'].isin(selected_crimes)]
+
 
 # --- FILTER 4: EXPORT ---
 st.sidebar.markdown("---")
@@ -289,8 +275,7 @@ with tab1:
         # 6. Render Map
         folium.LayerControl(collapsed=False).add_to(m) 
         
-        # --- FIX: REMOVED FIXED WIDTH SO IT FITS THE COLUMN ---
-        st_folium(m, height=700, width=None) # width=None allows it to be responsive
+        st_folium(m, height=700, width=None) 
         
     with col2:
         st.write("### Map Interpretation")
@@ -314,8 +299,8 @@ with tab2:
     # Chart 1: Categorical Distribution
     if not filtered_incidents.empty:
         fig_bar = px.bar(filtered_incidents['Crime type'].value_counts().reset_index(), 
-                         x='Crime type', y='count', color='Crime type',
-                         title=f"Total Recorded Incidents by Category ({start_date} to {end_date})")
+                          x='Crime type', y='count', color='Crime type',
+                          title=f"Total Recorded Incidents by Category ({start_date} to {end_date})")
         st.plotly_chart(fig_bar, use_container_width=True)
         
         # Chart 2: Temporal Trends
